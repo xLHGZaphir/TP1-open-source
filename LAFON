@@ -2,10 +2,67 @@
 
 Apres avoir installé Fedora 31, docker et désactiver selinux
 
+1. First steps
+
 On vérifie la version de systemd qui doit etre supérieure à 241, ici version 243 :
 
 [root@localhost ~]# systemctl --version 
 systemd 243 (v243.4-1.fc31)
-+PAM +AUDIT +SELINUX +IMA -APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNUTLS +ACL +XZ +LZ4
-+SECCOMP +BLKID +ELFUTILS +KMOD +IDN2 -IDN +PCRE2 default-hierarchy=unified
++PAM +AUDIT +SELINUX +IMA -APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNUTLS +ACL +XZ +LZ4+SECCOMP +BLKID 
++ELFUTILS +KMOD +IDN2 -IDN +PCRE2 default-hierarchy=unified
 
+Pour vérifier que systemd est PID 1, on fait la commande ps -ef : 
+zaphir      1120       1  0 12:40 ?        00:00:00 /usr/lib/systemd/systemd --user
+
+et il est bien PID 1
+
+Ensuite pour donner le nom de 5 processus systeme on peut faire la commande ps -ef ou alors la commande 
+ps --ppid 2 -p 2 --deselect : 
+
+    774 ?        00:00:00 ModemManager -> processus système qui permet de gerer la, 2g, 3g et 4g
+    776 ?        00:00:00 bluetoothd -> processus système du bluetooth machine 
+    779 ?        00:00:00 firewalld -> processus système du pare feu machine
+    839 ?        00:00:00 sshd -> processus système lié au service ssh 
+    930 ?        00:00:00 dockerd -> processus système lié a Docker
+
+2. Gestion du temps
+
+Voici le résultat de la première commande :
+
+[root@localhost ~]# timedatectl
+               Local time: ven. 2019-11-29 15:08:19 CET
+           Universal time: ven. 2019-11-29 14:08:19 UTC
+                 RTC time: ven. 2019-11-29 14:08:19
+                Time zone: Europe/Paris (CET, +0100)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+         
+Local Time : Heure locale 
+Universal Time : Heure basée sur le GMT
+RTC Time : Heure de la pile Bios 
+
+Il est pertinent d'utiliser le RTC car si on utilise notre machine sans connexion, notre machine sera 
+quand même à l'heure grâce à la pile Bios.
+
+j'ai changé la timezone pour Rome en faisant ceci : 
+
+[root@localhost ~]# timedatectl set-timezone Europe/Rome
+[root@localhost ~]# 
+
+On nous demande ensuite de désactiver l'utilisation de la synchronisation NTP :
+
+[root@localhost ~]# timedatectl set-ntp 0
+[root@localhost ~]# 
+
+Pour vérifier que c'est coupé on refait la première commande : 
+
+[root@localhost ~]# timedatectl
+               Local time: ven. 2019-11-29 15:34:20 CET
+           Universal time: ven. 2019-11-29 14:34:20 UTC
+                 RTC time: ven. 2019-11-29 14:34:20
+                Time zone: Europe/Rome (CET, +0100)
+System clock synchronized: yes
+              NTP service: inactive
+          RTC in local TZ: no
+          
