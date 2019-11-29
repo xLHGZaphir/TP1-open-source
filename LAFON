@@ -1,0 +1,11 @@
+#TP1 Systemd
+
+Apres avoir installé Fedora 31, docker et désactiver selinux
+
+On vérifie la version de systemd qui doit etre supérieure à 241, ici version 243 :
+
+[root@localhost ~]# systemctl --version 
+systemd 243 (v243.4-1.fc31)
++PAM +AUDIT +SELINUX +IMA -APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNUTLS +ACL +XZ +LZ4
++SECCOMP +BLKID +ELFUTILS +KMOD +IDN2 -IDN +PCRE2 default-hierarchy=unified
+
