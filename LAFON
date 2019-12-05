@@ -66,3 +66,126 @@ System clock synchronized: yes
               NTP service: inactive
           RTC in local TZ: no
           
+3. Gestion de noms
+
+Le changement de nom : 
+
+[root@localhost ~]# hostnamectl set-hostname VMZaphir
+[root@localhost ~]# exit
+déconnexion
+[zaphir@localhost ~]$ hostname
+VMZaphir
+
+La différence entre : 
+--pretty = Nom sans regle de nommage adapté pour l'utilisateur mais pas pour la machine 
+--static = Nom donné de base en général localhost
+--transient = Nom donné par le MDNS ou DHCP
+
+Ensuite nous pouvons mettre un nom de deployement : 
+
+[root@VMZaphir ~]# hostnamectl set-deployment Bonjour
+
+Puis on vérifie 
+
+[root@VMZaphir ~]# hostnamectl 
+   Static hostname: VMZaphir
+         Icon name: computer-vm
+           Chassis: vm
+        Deployment: Bonjour
+        Machine ID: 6c3ea4afea054d059105d365cce6d0b9
+           Boot ID: f42dda2d58fa4ab29d639da6c58177b2
+    Virtualization: vmware
+  Operating System: Fedora 31 (Server Edition)
+       CPE OS Name: cpe:/o:fedoraproject:fedora:31
+            Kernel: Linux 5.3.12-300.fc31.x86_64
+      Architecture: x86-64
+      
+4. Gestion du réseau (et résolution de noms)
+
+on essaye la commande, on obtient ceci : 
+
+[root@VMZaphir ~]# nmcli con show
+NAME     UUID                                  TYPE      DEVICE  
+ens33    53acbbeb-b190-3c6d-aab6-fff92545632c  ethernet  ens33   
+docker0  c24980a6-b255-447a-8656-1f0eed3fd9f3  bridge    docker0 
+
+Pour afficher les infos DHCP avec network manager voici la commande :
+
+[root@VMZaphir ~]# cat /var/lib/NetworkManager/internal-53acbbeb-b190-3c6d-aab6-fff92545632c-ens33.lease 
+# This is private data. Do not parse.
+ADDRESS=192.168.43.3
+NETMASK=255.255.255.0
+ROUTER=192.168.43.145
+SERVER_ADDRESS=192.168.43.145
+NEXT_SERVER=192.168.43.145
+BROADCAST=192.168.43.255
+T1=1800
+T2=3150
+LIFETIME=3600
+DNS=192.168.43.145
+HOSTNAME=VMZaphir
+CLIENTID=01000c29ed14eb
+VENDOR_SPECIFIC=414e44524f49445f4d455445524544
+
+Désactiver NetworkManager : 
+
+[root@VMZaphir ~]# systemctl disable NetworkManager 
+Removed /etc/systemd/system/multi-user.target.wants/NetworkManager.service.
+Removed /etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service.
+Removed /etc/systemd/system/network-online.target.wants/NetworkManager-wait-online.service.
+
+Activer systemd-networkd :
+
+[root@VMZaphir ~]# systemctl enable systemd-networkd
+Created symlink /etc/systemd/system/dbus-org.freedesktop.network1.service → /usr/lib/systemd/system/systemd-networkd.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/systemd-networkd.service → /usr/lib/systemd/system/systemd-networkd.service.
+Created symlink /etc/systemd/system/sockets.target.wants/systemd-networkd.socket → /usr/lib/systemd/system/systemd-networkd.socket.
+Created symlink /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service → /usr/lib/systemd/system/systemd-networkd-wait-online.service.
+
+Pour check : 
+
+[root@VMZaphir ~]# systemctl is-enabled NetworkManager
+disable
+et
+[root@VMZaphir ~]# systemctl is-enabled systemd-networkd
+enabled
+
+Pour pouvoir configurer le réseau avec systemd, j'ai créé un fichier ens33.network dans /etc/systemd/network/ :
+
+  GNU nano 4.3                              /etc/systemd/network/ens33.network                              Modifié  
+[Match]
+Key=ens33 
+
+[Network]
+Address=192.168.43.100/24
+DNS=1.1.1.1
+
+System resolvd :
+
+Pour start et start au démarrage systemd-resolved on fait les deux commandes suivantes : 
+
+[root@VMZaphir ~]# systemctl start systemd-resolved
+[root@VMZaphir ~]# systemctl enable  systemd-resolved
+Created symlink /etc/systemd/system/dbus-org.freedesktop.resolve1.service → /usr/lib/systemd/system/systemd-resolved.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/systemd-resolved.service → /usr/lib/systemd/system/systemd-resolved.service.
+
+On vérifie qu'il est bien lancé : 
+
+[root@VMZaphir ~]# systemctl status systemd-resolved
+● systemd-resolved.service - Network Name Resolution
+   Loaded: loaded (/usr/lib/systemd/system/systemd-resolved.service; enabled; vendor preset: disabled)
+   Active: active (running) since Thu 2019-12-05 12:15:36 CET; 1min 17s ago
+     Docs: man:systemd-resolved.service(8)
+           https://www.freedesktop.org/wiki/Software/systemd/resolved
+           https://www.freedesktop.org/wiki/Software/systemd/writing-network-configuration-managers
+           https://www.freedesktop.org/wiki/Software/systemd/writing-resolver-clients
+ Main PID: 1740 (systemd-resolve)
+   Status: "Processing requests..."
+    Tasks: 1 (limit: 2307)
+   Memory: 11.5M
+   CGroup: /system.slice/systemd-resolved.service
+           └─1740 /usr/lib/systemd/systemd-resolved
+
+
+
+
