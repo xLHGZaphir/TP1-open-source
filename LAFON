@@ -188,7 +188,7 @@ On vérifie qu'il est bien lancé :
 
 On vérifie que un DNS tourne localement sur notre machine : 
 
-[root@VMZaphir ~]# ss -ltunp
+[root@VMZaphir ~]# ss -ltunp.  avec l pour afficher que ce qui ecoute, t pour tcp, u pour udp, n pour ne pas affciher le domaine et p pour affcher les processus associer au port d'écoute.
 Netid State  Recv-Q Send-Q        Local Address:Port   Peer Address:Port                                             
 udp   UNCONN 0      0             127.0.0.53%lo:53          0.0.0.0:*     users:(("systemd-resolve",pid=1740,fd=18)) 
 udp   UNCONN 0      0        192.168.43.3%ens33:68          0.0.0.0:*     users:(("NetworkManager",pid=1354,fd=20))  
