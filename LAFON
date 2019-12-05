@@ -186,6 +186,45 @@ On vérifie qu'il est bien lancé :
    CGroup: /system.slice/systemd-resolved.service
            └─1740 /usr/lib/systemd/systemd-resolved
 
+On vérifie que un DNS tourne localement sur notre machine : 
+
+[root@VMZaphir ~]# ss -ltunp
+Netid State  Recv-Q Send-Q        Local Address:Port   Peer Address:Port                                             
+udp   UNCONN 0      0             127.0.0.53%lo:53          0.0.0.0:*     users:(("systemd-resolve",pid=1740,fd=18)) 
+udp   UNCONN 0      0        192.168.43.3%ens33:68          0.0.0.0:*     users:(("NetworkManager",pid=1354,fd=20))  
+udp   UNCONN 0      0                   0.0.0.0:68          0.0.0.0:*     users:(("dhclient",pid=1110,fd=9))         
+udp   UNCONN 0      0                   0.0.0.0:5355        0.0.0.0:*     users:(("systemd-resolve",pid=1740,fd=12)) 
+udp   UNCONN 0      0                      [::]:5355           [::]:*     users:(("systemd-resolve",pid=1740,fd=14)) 
+tcp   LISTEN 0      128                 0.0.0.0:5355        0.0.0.0:*     users:(("systemd-resolve",pid=1740,fd=13)) 
+tcp   LISTEN 0      128           127.0.0.53%lo:53          0.0.0.0:*     users:(("systemd-resolve",pid=1740,fd=19)) 
+tcp   LISTEN 0      128                 0.0.0.0:22          0.0.0.0:*     users:(("sshd",pid=873,fd=5))              
+tcp   LISTEN 0      128                       *:9090              *:*     users:(("systemd",pid=1,fd=124))           
+tcp   LISTEN 0      128                    [::]:5355           [::]:*     users:(("systemd-resolve",pid=1740,fd=15)) 
+tcp   LISTEN 0      128                    [::]:22             [::]:*     users:(("sshd",pid=873,fd=7))              
+
+On fait une résolution DNS avec dig : 
+
+[root@VMZaphir ~]# dig www.facebook.com
+
+; <<>> DiG 9.11.13-RedHat-9.11.13-2.fc31 <<>> www.facebook.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21080
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1280
+;; QUESTION SECTION:
+;www.facebook.com.		IN	A
+
+;; ANSWER SECTION:
+www.facebook.com.	1210	IN	CNAME	star-mini.c10r.facebook.com.
+star-mini.c10r.facebook.com. 31	IN	A	157.240.21.35
+
+;; Query time: 36 msec
+;; SERVER: 192.168.43.15#53(192.168.43.15)
+;; WHEN: jeu. déc. 05 12:44:31 CET 2019
+;; MSG SIZE  rcvd: 90
 
 
 
