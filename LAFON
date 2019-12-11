@@ -595,8 +595,3 @@ Ensuite on vérifie le fichier créé dans /etc/systemd/system.control/ :
 MemoryMax=536870912
 
 Donc c'est bien créé avec la bonne valeur dedans cet à dire 512Mo.
-
-2. D-Bus
-
-En utilisant dbus-monitor ou busctl monitor, on veut observer, identifier et expliquer un évènement :
-
